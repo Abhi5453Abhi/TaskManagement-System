@@ -224,6 +224,144 @@ func TestIsValidHexColor(t *testing.T) {
 	}
 }
 
+// TestColorValidationFix tests the specific fix for color validation bug
+func TestColorValidationFix(t *testing.T) {
+	tests := []struct {
+		name        string
+		color       string
+		shouldPass  bool
+		description string
+	}{
+		{
+			name:        "valid_color_with_hash_prefix",
+			color:       "#FF0000",
+			shouldPass:  true,
+			description: "Valid hex color with # prefix should pass",
+		},
+		{
+			name:        "invalid_color_without_hash_prefix",
+			color:       "FF0000",
+			shouldPass:  false,
+			description: "Hex color without # prefix should fail (this was the bug)",
+		},
+		{
+			name:        "invalid_color_with_wrong_prefix",
+			color:       "@FF0000",
+			shouldPass:  false,
+			description: "Hex color with wrong prefix should fail",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isValidHexColor(tt.color)
+			if result != tt.shouldPass {
+				t.Errorf("isValidHexColor(%q) = %v, want %v. %s", 
+					tt.color, result, tt.shouldPass, tt.description)
+			}
+		})
+	}
+}
+
+// TestCategoryColorValidationIntegration tests color validation in category context
+func TestCategoryColorValidationIntegration(t *testing.T) {
+	tests := []struct {
+		name        string
+		category    Category
+		expectError bool
+		description string
+	}{
+		{
+			name: "valid_category_with_proper_color",
+			category: Category{
+				Name:  "Work",
+				Color: stringPtr("#FF0000"),
+			},
+			expectError: false,
+			description: "Category with valid hex color should pass validation",
+		},
+		{
+			name: "invalid_category_without_hash_prefix",
+			category: Category{
+				Name:  "Personal",
+				Color: stringPtr("FF0000"),
+			},
+			expectError: true,
+			description: "Category with color missing # prefix should fail validation",
+		},
+		{
+			name: "invalid_category_with_invalid_characters",
+			category: Category{
+				Name:  "Urgent",
+				Color: stringPtr("#GG0000"),
+			},
+			expectError: true,
+			description: "Category with invalid hex characters should fail validation",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.category.Validate()
+			hasError := err != nil
+			
+			if hasError != tt.expectError {
+				t.Errorf("Category.Validate() error = %v, want error = %v. %s", 
+					hasError, tt.expectError, tt.description)
+			}
+		})
+	}
+}
+
+// TestCreateCategoryRequestColorValidation tests color validation in request context
+func TestCreateCategoryRequestColorValidation(t *testing.T) {
+	tests := []struct {
+		name        string
+		request     CreateCategoryRequest
+		expectError bool
+		description string
+	}{
+		{
+			name: "valid_request_with_proper_color",
+			request: CreateCategoryRequest{
+				Name:  "Work",
+				Color: stringPtr("#00FF00"),
+			},
+			expectError: false,
+			description: "Create request with valid hex color should pass",
+		},
+		{
+			name: "invalid_request_without_hash_prefix",
+			request: CreateCategoryRequest{
+				Name:  "Personal",
+				Color: stringPtr("00FF00"),
+			},
+			expectError: true,
+			description: "Create request with color missing # prefix should fail",
+		},
+		{
+			name: "valid_request_without_color",
+			request: CreateCategoryRequest{
+				Name: "No Color",
+			},
+			expectError: false,
+			description: "Create request without color should pass (color is optional)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.request.Validate()
+			hasError := err != nil
+			
+			if hasError != tt.expectError {
+				t.Errorf("CreateCategoryRequest.Validate() error = %v, want error = %v. %s", 
+					hasError, tt.expectError, tt.description)
+			}
+		})
+	}
+}
+
 // Helper functions
 func stringPtr(s string) *string {
 	return &s
