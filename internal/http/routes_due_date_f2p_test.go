@@ -99,7 +99,7 @@ func (m *mockTaskService) DeleteTask(id int64) error {
 
 func TestCreateTaskWithDueDate_F2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -184,7 +184,7 @@ func TestCreateTaskWithDueDate_F2P(t *testing.T) {
 
 func TestUpdateTaskDueDate_F2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	// Create a task first
@@ -272,7 +272,7 @@ func TestUpdateTaskDueDate_F2P(t *testing.T) {
 
 func TestGetTaskWithDueDate_F2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -330,7 +330,7 @@ func TestGetTaskWithDueDate_F2P(t *testing.T) {
 
 func TestTaskSortingByDueDate_F2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	today := time.Now().Format("2006-01-02")

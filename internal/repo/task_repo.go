@@ -17,11 +17,15 @@ type TaskRepository interface {
 }
 
 type taskRepository struct {
-	db *sql.DB
+	db               *sql.DB
+	categoryRepo     CategoryRepository
 }
 
 func NewTaskRepository(db *sql.DB) TaskRepository {
-	return &taskRepository{db: db}
+	return &taskRepository{
+		db:           db,
+		categoryRepo: NewCategoryRepository(db),
+	}
 }
 
 func Migrate(db *sql.DB) error {
@@ -37,10 +41,30 @@ func Migrate(db *sql.DB) error {
 		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 	);
 	
+	CREATE TABLE IF NOT EXISTS categories (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name VARCHAR(100) NOT NULL UNIQUE,
+		description TEXT,
+		color VARCHAR(7),
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	);
+	
+	CREATE TABLE IF NOT EXISTS task_categories (
+		task_id INTEGER NOT NULL,
+		category_id INTEGER NOT NULL,
+		PRIMARY KEY (task_id, category_id),
+		FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+		FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+	);
+	
 	CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 	CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);
 	CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
 	CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at);
+	CREATE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
+	CREATE INDEX IF NOT EXISTS idx_task_categories_task_id ON task_categories(task_id);
+	CREATE INDEX IF NOT EXISTS idx_task_categories_category_id ON task_categories(category_id);
 	`
 
 	_, err := db.Exec(query)
@@ -101,6 +125,13 @@ func (r *taskRepository) GetByID(id int64) (*domain.Task, error) {
 		return nil, fmt.Errorf("failed to get task: %w", err)
 	}
 
+	// Load categories for the task
+	categories, err := r.categoryRepo.GetByTaskID(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get task categories: %w", err)
+	}
+	task.Categories = categories
+
 	return task, nil
 }
 
@@ -143,6 +174,14 @@ func (r *taskRepository) GetAll() ([]*domain.Task, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan task: %w", err)
 		}
+		
+		// Load categories for the task
+		categories, err := r.categoryRepo.GetByTaskID(task.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get task categories: %w", err)
+		}
+		task.Categories = categories
+		
 		tasks = append(tasks, task)
 	}
 

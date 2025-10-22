@@ -2,23 +2,19 @@ package http
 
 import (
 	"net/http"
-	"task-manager/internal/service"
 
 	"github.com/gorilla/mux"
 )
 
 type Server struct {
-	taskService service.TaskService
-	router      *mux.Router
+	router *mux.Router
 }
 
-func NewServer(taskService service.TaskService) *Server {
-	handler := NewHandler(taskService)
+func NewServer(handler *Handler) *Server {
 	router := handler.SetupRoutes()
 
 	return &Server{
-		taskService: taskService,
-		router:      router,
+		router: router,
 	}
 }
 

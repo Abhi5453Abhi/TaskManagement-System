@@ -33,9 +33,12 @@ func main() {
 	}
 
 	taskRepo := repo.NewTaskRepository(db)
-	taskService := service.NewTaskService(taskRepo)
+	categoryRepo := repo.NewCategoryRepository(db)
+	taskService := service.NewTaskService(taskRepo, categoryRepo)
+	categoryService := service.NewCategoryService(categoryRepo)
 
-	httpServer := httpHandler.NewServer(taskService)
+	handler := httpHandler.NewHandler(taskService, categoryService)
+	httpServer := httpHandler.NewServer(handler)
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Port),
 		Handler: httpServer,

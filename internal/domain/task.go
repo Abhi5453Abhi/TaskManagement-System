@@ -29,6 +29,7 @@ type Task struct {
 	Status      TaskStatus   `json:"status"`
 	Priority    TaskPriority `json:"priority"`
 	DueDate     *time.Time   `json:"due_date"`
+	Categories  []Category   `json:"categories"`
 	CreatedAt   time.Time    `json:"created_at"`
 	UpdatedAt   time.Time    `json:"updated_at"`
 }
@@ -38,6 +39,7 @@ type CreateTaskRequest struct {
 	Description string       `json:"description"`
 	Priority    TaskPriority `json:"priority"`
 	DueDate     *time.Time   `json:"due_date"`
+	CategoryIDs []int64      `json:"category_ids"`
 }
 
 type UpdateTaskRequest struct {
@@ -46,6 +48,7 @@ type UpdateTaskRequest struct {
 	Status      *TaskStatus   `json:"status,omitempty"`
 	Priority    *TaskPriority `json:"priority,omitempty"`
 	DueDate     *time.Time    `json:"due_date,omitempty"`
+	CategoryIDs *[]int64      `json:"category_ids,omitempty"`
 }
 
 func (t *Task) Validate() error {

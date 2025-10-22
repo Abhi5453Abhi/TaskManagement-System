@@ -19,12 +19,14 @@ type TaskService interface {
 }
 
 type taskService struct {
-	taskRepo repo.TaskRepository
+	taskRepo     repo.TaskRepository
+	categoryRepo repo.CategoryRepository
 }
 
-func NewTaskService(taskRepo repo.TaskRepository) TaskService {
+func NewTaskService(taskRepo repo.TaskRepository, categoryRepo repo.CategoryRepository) TaskService {
 	return &taskService{
-		taskRepo: taskRepo,
+		taskRepo:     taskRepo,
+		categoryRepo: categoryRepo,
 	}
 }
 
@@ -48,7 +50,15 @@ func (s *taskService) CreateTask(req *domain.CreateTaskRequest) (*domain.Task, e
 		return nil, fmt.Errorf("failed to create task: %w", err)
 	}
 
-	return task, nil
+	// Add categories to the task
+	for _, categoryID := range req.CategoryIDs {
+		if err := s.categoryRepo.AddTaskCategory(task.ID, categoryID); err != nil {
+			return nil, fmt.Errorf("failed to add category to task: %w", err)
+		}
+	}
+
+	// Reload the task with categories
+	return s.taskRepo.GetByID(task.ID)
 }
 
 func (s *taskService) GetTask(id int64) (*domain.Task, error) {
@@ -113,7 +123,23 @@ func (s *taskService) UpdateTask(id int64, req *domain.UpdateTaskRequest) (*doma
 		return nil, fmt.Errorf("failed to update task: %w", err)
 	}
 
-	return existingTask, nil
+	// Handle category updates
+	if req.CategoryIDs != nil {
+		// Remove all existing categories
+		if err := s.categoryRepo.RemoveAllTaskCategories(id); err != nil {
+			return nil, fmt.Errorf("failed to remove existing categories: %w", err)
+		}
+
+		// Add new categories
+		for _, categoryID := range *req.CategoryIDs {
+			if err := s.categoryRepo.AddTaskCategory(id, categoryID); err != nil {
+				return nil, fmt.Errorf("failed to add category to task: %w", err)
+			}
+		}
+	}
+
+	// Reload the task with updated categories
+	return s.taskRepo.GetByID(id)
 }
 
 func (s *taskService) DeleteTask(id int64) error {

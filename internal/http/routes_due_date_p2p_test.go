@@ -15,7 +15,7 @@ import (
 
 func TestBasicTaskCRUDWithDueDate_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	t.Run("should create task with all fields including due date", func(t *testing.T) {
@@ -66,7 +66,7 @@ func TestBasicTaskCRUDWithDueDate_P2P(t *testing.T) {
 
 func TestTaskStatusManagementWithDueDate_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -146,7 +146,7 @@ func TestTaskStatusManagementWithDueDate_P2P(t *testing.T) {
 
 func TestTaskPriorityManagementWithDueDate_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -197,7 +197,7 @@ func TestTaskPriorityManagementWithDueDate_P2P(t *testing.T) {
 
 func TestTaskTitleAndDescriptionWithDueDate_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -274,7 +274,7 @@ func TestTaskTitleAndDescriptionWithDueDate_P2P(t *testing.T) {
 
 func TestTaskDeletionWithDueDate_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -311,7 +311,7 @@ func TestTaskDeletionWithDueDate_P2P(t *testing.T) {
 
 func TestTaskRetrievalWithDueDate_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
