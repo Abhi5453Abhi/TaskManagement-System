@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"task-manager/internal/domain"
@@ -212,7 +213,7 @@ func TestGetCategory_F2P(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/v1/categories/1", nil)
+			req := httptest.NewRequest("GET", fmt.Sprintf("/v1/categories/%d", tt.categoryID), nil)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -333,7 +334,7 @@ func TestUpdateCategory_F2P(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			jsonBody, _ := json.Marshal(tt.requestBody)
-			req := httptest.NewRequest("PUT", "/v1/categories/1", bytes.NewBuffer(jsonBody))
+			req := httptest.NewRequest("PUT", fmt.Sprintf("/v1/categories/%d", tt.categoryID), bytes.NewBuffer(jsonBody))
 			req.Header.Set("Content-Type", "application/json")
 
 			w := httptest.NewRecorder()

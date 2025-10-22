@@ -14,7 +14,7 @@ import (
 
 func TestBasicTaskCRUD_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	t.Run("should create task without priority field", func(t *testing.T) {
@@ -64,7 +64,7 @@ func TestBasicTaskCRUD_P2P(t *testing.T) {
 
 func TestTaskStatusManagement_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	// Create a task first
@@ -126,7 +126,7 @@ func TestTaskStatusManagement_P2P(t *testing.T) {
 
 func TestTaskTitleAndDescription_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	// Create a task first
@@ -190,7 +190,7 @@ func TestTaskTitleAndDescription_P2P(t *testing.T) {
 
 func TestTaskDeletion_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	// Create a task first
@@ -224,7 +224,7 @@ func TestTaskDeletion_P2P(t *testing.T) {
 
 func TestTaskRetrieval_P2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	// Create multiple tasks

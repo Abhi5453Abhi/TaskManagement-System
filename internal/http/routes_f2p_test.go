@@ -15,7 +15,7 @@ import (
 
 func TestCreateTaskWithPriority_F2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	tests := []struct {
@@ -97,7 +97,7 @@ func TestCreateTaskWithPriority_F2P(t *testing.T) {
 
 func TestUpdateTaskPriority_F2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	// Create a task first
@@ -171,7 +171,7 @@ func TestUpdateTaskPriority_F2P(t *testing.T) {
 
 func TestGetTaskWithPriority_F2P(t *testing.T) {
 	mockService := newMockTaskService()
-	handler := NewHandler(mockService)
+	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
 	// Create tasks with different priorities
