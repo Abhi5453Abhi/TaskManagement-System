@@ -12,6 +12,7 @@ type TaskRepository interface {
 	Create(task *domain.Task) error
 	GetByID(id int64) (*domain.Task, error)
 	GetAll() ([]*domain.Task, error)
+	GetWithFilters(filters *domain.TaskFilters) ([]*domain.Task, error)
 	Update(task *domain.Task) error
 	Delete(id int64) error
 }
@@ -175,6 +176,110 @@ func (r *taskRepository) GetAll() ([]*domain.Task, error) {
 			return nil, fmt.Errorf("failed to scan task: %w", err)
 		}
 		
+		// Load categories for the task
+		categories, err := r.categoryRepo.GetByTaskID(task.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get task categories: %w", err)
+		}
+		task.Categories = categories
+		
+		tasks = append(tasks, task)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return tasks, nil
+}
+
+func (r *taskRepository) GetWithFilters(filters *domain.TaskFilters) ([]*domain.Task, error) {
+	// Build the WHERE clause dynamically
+	whereClause := ""
+	args := []interface{}{}
+	
+	if len(filters.Statuses) > 0 {
+		placeholders := ""
+		for i, status := range filters.Statuses {
+			if i > 0 {
+				placeholders += ","
+			}
+			placeholders += "?"
+			args = append(args, string(status))
+		}
+		whereClause += "status IN (" + placeholders + ")"
+	}
+	
+	if len(filters.Priorities) > 0 {
+		if whereClause != "" {
+			whereClause += " AND "
+		}
+		placeholders := ""
+		for i, priority := range filters.Priorities {
+			if i > 0 {
+				placeholders += ","
+			}
+			placeholders += "?"
+			args = append(args, string(priority))
+		}
+		whereClause += "priority IN (" + placeholders + ")"
+	}
+	
+	if filters.Search != "" {
+		if whereClause != "" {
+			whereClause += " AND "
+		}
+		searchPattern := "%" + filters.Search + "%"
+		whereClause += "(title LIKE ? OR description LIKE ?)"
+		args = append(args, searchPattern, searchPattern)
+	}
+	
+	// Build the complete query
+	query := `
+		SELECT id, title, description, status, priority, due_date, created_at, updated_at
+		FROM tasks`
+	
+	if whereClause != "" {
+		query += " WHERE " + whereClause
+	}
+	
+	query += `
+		ORDER BY 
+			CASE WHEN due_date IS NULL THEN 1 ELSE 0 END,
+			due_date ASC,
+			CASE priority 
+				WHEN 'critical' THEN 4
+				WHEN 'high' THEN 3
+				WHEN 'medium' THEN 2
+				WHEN 'low' THEN 1
+				ELSE 0
+			END DESC,
+			created_at ASC
+	`
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query tasks with filters: %w", err)
+	}
+	defer rows.Close()
+
+	var tasks []*domain.Task
+	for rows.Next() {
+		task := &domain.Task{}
+		err := rows.Scan(
+			&task.ID,
+			&task.Title,
+			&task.Description,
+			&task.Status,
+			&task.Priority,
+			&task.DueDate,
+			&task.CreatedAt,
+			&task.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan task: %w", err)
+		}
+
 		// Load categories for the task
 		categories, err := r.categoryRepo.GetByTaskID(task.ID)
 		if err != nil {

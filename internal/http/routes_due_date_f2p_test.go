@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"task-manager/internal/domain"
 	"testing"
 	"time"
@@ -60,6 +61,68 @@ func (m *mockTaskService) GetAllTasks() ([]*domain.Task, error) {
 		tasks = append(tasks, task)
 	}
 	return tasks, nil
+}
+
+func (m *mockTaskService) GetTasksWithFilters(filters *domain.TaskFilters) ([]*domain.Task, error) {
+	if filters == nil {
+		return m.GetAllTasks()
+	}
+
+	// Validate filters
+	if err := filters.Validate(); err != nil {
+		return nil, err
+	}
+
+	var filteredTasks []*domain.Task
+	for _, task := range m.tasks {
+		// Check status filter
+		if len(filters.Statuses) > 0 {
+			statusMatch := false
+			for _, status := range filters.Statuses {
+				if task.Status == status {
+					statusMatch = true
+					break
+				}
+			}
+			if !statusMatch {
+				continue
+			}
+		}
+
+		// Check priority filter
+		if len(filters.Priorities) > 0 {
+			priorityMatch := false
+			for _, priority := range filters.Priorities {
+				if task.Priority == priority {
+					priorityMatch = true
+					break
+				}
+			}
+			if !priorityMatch {
+				continue
+			}
+		}
+
+		// Check search filter
+		if filters.Search != "" {
+			searchMatch := false
+			searchLower := strings.ToLower(filters.Search)
+			titleLower := strings.ToLower(task.Title)
+			descriptionLower := strings.ToLower(task.Description)
+			
+			if strings.Contains(titleLower, searchLower) || strings.Contains(descriptionLower, searchLower) {
+				searchMatch = true
+			}
+			
+			if !searchMatch {
+				continue
+			}
+		}
+
+		filteredTasks = append(filteredTasks, task)
+	}
+
+	return filteredTasks, nil
 }
 
 func (m *mockTaskService) UpdateTask(id int64, req *domain.UpdateTaskRequest) (*domain.Task, error) {

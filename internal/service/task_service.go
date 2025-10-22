@@ -14,6 +14,7 @@ type TaskService interface {
 	CreateTask(req *domain.CreateTaskRequest) (*domain.Task, error)
 	GetTask(id int64) (*domain.Task, error)
 	GetAllTasks() ([]*domain.Task, error)
+	GetTasksWithFilters(filters *domain.TaskFilters) ([]*domain.Task, error)
 	UpdateTask(id int64, req *domain.UpdateTaskRequest) (*domain.Task, error)
 	DeleteTask(id int64) error
 }
@@ -78,6 +79,23 @@ func (s *taskService) GetAllTasks() ([]*domain.Task, error) {
 	tasks, err := s.taskRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tasks: %w", err)
+	}
+
+	return tasks, nil
+}
+
+func (s *taskService) GetTasksWithFilters(filters *domain.TaskFilters) ([]*domain.Task, error) {
+	if filters == nil {
+		return s.GetAllTasks()
+	}
+
+	if err := filters.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid filters: %w", err)
+	}
+
+	tasks, err := s.taskRepo.GetWithFilters(filters)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tasks with filters: %w", err)
 	}
 
 	return tasks, nil
