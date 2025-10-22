@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"task-manager/internal/domain"
 	"task-manager/internal/service"
 
@@ -80,9 +81,46 @@ func (h *Handler) getTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getAllTasks(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.taskService.GetAllTasks()
+	// Parse query parameters for filtering
+	filters := &domain.TaskFilters{}
+	
+	// Parse status filter
+	if statusParam := r.URL.Query().Get("status"); statusParam != "" {
+		statuses := strings.Split(statusParam, ",")
+		for _, statusStr := range statuses {
+			statusStr = strings.TrimSpace(statusStr)
+			if statusStr != "" {
+				filters.Statuses = append(filters.Statuses, domain.TaskStatus(statusStr))
+			}
+		}
+	}
+	
+	// Parse priority filter
+	if priorityParam := r.URL.Query().Get("priority"); priorityParam != "" {
+		priorities := strings.Split(priorityParam, ",")
+		for _, priorityStr := range priorities {
+			priorityStr = strings.TrimSpace(priorityStr)
+			if priorityStr != "" {
+				filters.Priorities = append(filters.Priorities, domain.TaskPriority(priorityStr))
+			}
+		}
+	}
+	
+	// If no filters are provided, use GetAllTasks for backward compatibility
+	if len(filters.Statuses) == 0 && len(filters.Priorities) == 0 {
+		tasks, err := h.taskService.GetAllTasks()
+		if err != nil {
+			writeErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		writeJSONResponse(w, http.StatusOK, tasks)
+		return
+	}
+	
+	// Use filtered query
+	tasks, err := h.taskService.GetTasksWithFilters(filters)
 	if err != nil {
-		writeErrorResponse(w, http.StatusInternalServerError, err.Error())
+		writeErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
