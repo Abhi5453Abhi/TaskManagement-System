@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -144,4 +145,25 @@ func GetPriorityOrder(priority TaskPriority) int {
 	default:
 		return 0
 	}
+}
+
+// TaskFilters represents filters for task queries
+type TaskFilters struct {
+	Statuses  []TaskStatus   `json:"statuses,omitempty"`
+	Priorities []TaskPriority `json:"priorities,omitempty"`
+}
+
+// Validate checks if the TaskFilters are valid
+func (f *TaskFilters) Validate() error {
+	for _, status := range f.Statuses {
+		if !isValidStatus(status) {
+			return fmt.Errorf("invalid status: %s", status)
+		}
+	}
+	for _, priority := range f.Priorities {
+		if !isValidPriority(priority) {
+			return fmt.Errorf("invalid priority: %s", priority)
+		}
+	}
+	return nil
 }
