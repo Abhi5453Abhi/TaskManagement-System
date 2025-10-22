@@ -86,22 +86,9 @@ func (req *UpdateCategoryRequest) Validate() error {
 
 // isValidHexColor checks if the string is a valid hex color code
 func isValidHexColor(color string) bool {
-	// BUG: This validation is too lenient - it allows colors without # prefix
-	if len(color) != 6 && len(color) != 7 {
+	if len(color) != 7 {
 		return false
 	}
-	
-	// Allow both with and without # prefix (BUGGY)
-	if len(color) == 6 {
-		for i := 0; i < 6; i++ {
-			c := color[i]
-			if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
-				return false
-			}
-		}
-		return true
-	}
-	
 	if color[0] != '#' {
 		return false
 	}
