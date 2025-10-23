@@ -81,7 +81,7 @@ func (h *Handler) getTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getAllTasks(w http.ResponseWriter, r *http.Request) {
-	// Parse query parameters for filtering
+	// Parse query parameters for filtering and search
 	filters := &domain.TaskFilters{}
 	
 	// Parse status filter
@@ -106,8 +106,13 @@ func (h *Handler) getAllTasks(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	
+	// Parse search parameter
+	if searchParam := r.URL.Query().Get("search"); searchParam != "" {
+		filters.Search = strings.TrimSpace(searchParam)
+	}
+	
 	// If no filters are provided, use GetAllTasks for backward compatibility
-	if len(filters.Statuses) == 0 && len(filters.Priorities) == 0 {
+	if len(filters.Statuses) == 0 && len(filters.Priorities) == 0 && filters.Search == "" {
 		tasks, err := h.taskService.GetAllTasks()
 		if err != nil {
 			writeErrorResponse(w, http.StatusInternalServerError, err.Error())

@@ -18,8 +18,8 @@ type TaskRepository interface {
 }
 
 type taskRepository struct {
-	db               *sql.DB
-	categoryRepo     CategoryRepository
+	db           *sql.DB
+	categoryRepo CategoryRepository
 }
 
 func NewTaskRepository(db *sql.DB) TaskRepository {
@@ -175,14 +175,14 @@ func (r *taskRepository) GetAll() ([]*domain.Task, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan task: %w", err)
 		}
-		
+
 		// Load categories for the task
 		categories, err := r.categoryRepo.GetByTaskID(task.ID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get task categories: %w", err)
 		}
 		task.Categories = categories
-		
+
 		tasks = append(tasks, task)
 	}
 
@@ -197,7 +197,7 @@ func (r *taskRepository) GetWithFilters(filters *domain.TaskFilters) ([]*domain.
 	// Build the WHERE clause dynamically
 	whereClause := ""
 	args := []interface{}{}
-	
+
 	if len(filters.Statuses) > 0 {
 		placeholders := ""
 		for i, status := range filters.Statuses {
@@ -209,7 +209,7 @@ func (r *taskRepository) GetWithFilters(filters *domain.TaskFilters) ([]*domain.
 		}
 		whereClause += "status IN (" + placeholders + ")"
 	}
-	
+
 	if len(filters.Priorities) > 0 {
 		if whereClause != "" {
 			whereClause += " AND "
@@ -224,16 +224,25 @@ func (r *taskRepository) GetWithFilters(filters *domain.TaskFilters) ([]*domain.
 		}
 		whereClause += "priority IN (" + placeholders + ")"
 	}
-	
+
+	if filters.Search != "" {
+		if whereClause != "" {
+			whereClause += " AND "
+		}
+		searchPattern := "%" + filters.Search + "%"
+		whereClause += "(title LIKE ? OR description LIKE ?)"
+		args = append(args, searchPattern, searchPattern)
+	}
+
 	// Build the complete query
 	query := `
 		SELECT id, title, description, status, priority, due_date, created_at, updated_at
 		FROM tasks`
-	
+
 	if whereClause != "" {
 		query += " WHERE " + whereClause
 	}
-	
+
 	query += `
 		ORDER BY 
 			CASE WHEN due_date IS NULL THEN 1 ELSE 0 END,
@@ -277,7 +286,7 @@ func (r *taskRepository) GetWithFilters(filters *domain.TaskFilters) ([]*domain.
 			return nil, fmt.Errorf("failed to get task categories: %w", err)
 		}
 		task.Categories = categories
-		
+
 		tasks = append(tasks, task)
 	}
 

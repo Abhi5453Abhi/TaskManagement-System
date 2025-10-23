@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"task-manager/internal/domain"
 	"testing"
 	"time"
@@ -98,6 +99,22 @@ func (m *mockTaskService) GetTasksWithFilters(filters *domain.TaskFilters) ([]*d
 				}
 			}
 			if !priorityMatch {
+				continue
+			}
+		}
+
+		// Check search filter
+		if filters.Search != "" {
+			searchMatch := false
+			searchLower := strings.ToLower(filters.Search)
+			titleLower := strings.ToLower(task.Title)
+			descriptionLower := strings.ToLower(task.Description)
+
+			if strings.Contains(titleLower, searchLower) || strings.Contains(descriptionLower, searchLower) {
+				searchMatch = true
+			}
+
+			if !searchMatch {
 				continue
 			}
 		}

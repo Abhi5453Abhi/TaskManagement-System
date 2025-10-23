@@ -149,8 +149,9 @@ func GetPriorityOrder(priority TaskPriority) int {
 
 // TaskFilters represents filters for task queries
 type TaskFilters struct {
-	Statuses  []TaskStatus   `json:"statuses,omitempty"`
+	Statuses   []TaskStatus   `json:"statuses,omitempty"`
 	Priorities []TaskPriority `json:"priorities,omitempty"`
+	Search     string         `json:"search,omitempty"`
 }
 
 // Validate checks if the TaskFilters are valid

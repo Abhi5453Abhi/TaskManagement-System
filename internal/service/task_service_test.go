@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 	"task-manager/internal/domain"
 	"testing"
 	"time"
@@ -148,6 +149,22 @@ func (m *mockTaskRepository) GetWithFilters(filters *domain.TaskFilters) ([]*dom
 				}
 			}
 			if !priorityMatch {
+				continue
+			}
+		}
+
+		// Check search filter
+		if filters.Search != "" {
+			searchMatch := false
+			searchLower := strings.ToLower(filters.Search)
+			titleLower := strings.ToLower(task.Title)
+			descriptionLower := strings.ToLower(task.Description)
+
+			if strings.Contains(titleLower, searchLower) || strings.Contains(descriptionLower, searchLower) {
+				searchMatch = true
+			}
+
+			if !searchMatch {
 				continue
 			}
 		}
