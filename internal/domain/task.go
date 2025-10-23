@@ -111,6 +111,9 @@ func (r *UpdateTaskRequest) Validate() error {
 	if r.Priority != nil && !isValidPriority(*r.Priority) {
 		return errors.New("invalid priority")
 	}
+	if r.DueDate != nil && r.DueDate.Before(time.Now()) {
+		return errors.New("due date cannot be in the past")
+	}
 	return nil
 }
 
