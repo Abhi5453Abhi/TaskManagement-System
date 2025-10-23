@@ -401,8 +401,8 @@ func TestTaskSortingByDueDate_F2P(t *testing.T) {
 	handler := NewHandler(mockService, newMockCategoryService())
 	router := handler.SetupRoutes()
 
-	today := time.Now().Format("2006-01-02")
-	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
+	today := time.Now().AddDate(0, 0, 1).Format("2006-01-02")  // Tomorrow instead of today
+	tomorrow := time.Now().AddDate(0, 0, 2).Format("2006-01-02")  // Day after tomorrow
 	nextWeek := time.Now().AddDate(0, 0, 7).Format("2006-01-02")
 
 	// Create tasks with different due dates
