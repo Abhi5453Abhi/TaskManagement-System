@@ -87,7 +87,7 @@ func TestTaskFiltersSearch_Validate(t *testing.T) {
 			hasError := err != nil
 
 			if hasError != tt.expectError {
-				t.Errorf("TaskFilters.Validate() error = %v, want error = %v. %s", 
+				t.Errorf("TaskFilters.Validate() error = %v, want error = %v. %s",
 					hasError, tt.expectError, tt.description)
 			}
 		})

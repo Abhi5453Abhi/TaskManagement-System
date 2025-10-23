@@ -109,11 +109,11 @@ func (m *mockTaskService) GetTasksWithFilters(filters *domain.TaskFilters) ([]*d
 			searchLower := strings.ToLower(filters.Search)
 			titleLower := strings.ToLower(task.Title)
 			descriptionLower := strings.ToLower(task.Description)
-			
+
 			if strings.Contains(titleLower, searchLower) || strings.Contains(descriptionLower, searchLower) {
 				searchMatch = true
 			}
-			
+
 			if !searchMatch {
 				continue
 			}
