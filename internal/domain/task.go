@@ -68,7 +68,7 @@ func (t *Task) Validate() error {
 	if !isValidPriority(t.Priority) {
 		return errors.New("invalid priority")
 	}
-	if t.DueDate != nil && t.DueDate.Before(time.Now().Truncate(24*time.Hour)) {
+	if t.DueDate != nil && t.DueDate.Before(time.Now()) {
 		return errors.New("due date cannot be in the past")
 	}
 	return nil
@@ -87,7 +87,7 @@ func (r *CreateTaskRequest) Validate() error {
 	if !isValidPriority(r.Priority) {
 		return errors.New("invalid priority")
 	}
-	if r.DueDate != nil && r.DueDate.Before(time.Now().Truncate(24*time.Hour)) {
+	if r.DueDate != nil && r.DueDate.Before(time.Now()) {
 		return errors.New("due date cannot be in the past")
 	}
 	return nil
@@ -110,6 +110,9 @@ func (r *UpdateTaskRequest) Validate() error {
 	}
 	if r.Priority != nil && !isValidPriority(*r.Priority) {
 		return errors.New("invalid priority")
+	}
+	if r.DueDate != nil && r.DueDate.Before(time.Now()) {
+		return errors.New("due date cannot be in the past")
 	}
 	return nil
 }
